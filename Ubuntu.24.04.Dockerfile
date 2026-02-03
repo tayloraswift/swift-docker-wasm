@@ -92,7 +92,7 @@ USER ubuntu
 
 ENV PATH="$PATH:/home/ubuntu/x86_64/swift/usr/bin"
 ENV SWIFT_INSTALLATION="/home/ubuntu/x86_64/swift/usr"
-ENV SWIFT_WASM_SDK='$SWIFT_VERSION-$SWIFT_NIGHTLY-wasm32-unknown-wasip1-threads'
+ENV SWIFT_WASM_SDK="$SWIFT_VERSION-$SWIFT_NIGHTLY-wasm32-unknown-wasip1-threads"
 
 RUN swift sdk install https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip --checksum ${SWIFT_WASM_SDK_CHECKSUM}
 CMD ["sleep", "infinity"]

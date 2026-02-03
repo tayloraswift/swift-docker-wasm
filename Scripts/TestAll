@@ -9,6 +9,6 @@ for dockerfile in *.Dockerfile; do
         -v=$PWD/Tests:/swift \
         -w=/swift \
         swiftwasm:__test \
-        swift package --swift-sdk "$SWIFT_WASM_SDK" js
+        /bin/bash -c 'swift package --swift-sdk "$SWIFT_WASM_SDK" js'
 
 done
