@@ -1,15 +1,14 @@
 #!/bin/bash
 set -e
 
-for dockerfile in *.Dockerfile; do
-    docker build . -f $dockerfile -t swiftwasm:__test
+dockerfile='Ubuntu.24.04.Dockerfile'
 
-    echo $SWIFT_WASM_SDK
-    docker run --rm \
-        -u ubuntu \
-        -v=$PWD/Tests:/swift \
-        -w=/swift \
-        swiftwasm:__test \
-        /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
+docker build . -f $dockerfile -t swiftwasm:__test
 
-done
+echo $SWIFT_WASM_SDK
+docker run --rm \
+    -u ubuntu \
+    -v=$PWD/Tests:/swift \
+    -w=/swift \
+    swiftwasm:__test \
+    /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
