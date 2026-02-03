@@ -89,12 +89,6 @@ RUN apt dist-upgrade
 RUN apt install -y \
     imagemagick
 
-# create a neutral home directory for SDKs that is writable by everyone
-# this allows any user (UID 1000, 1001, etc.) to use the SDKs without permission errors
-RUN mkdir -p /swift
-RUN chmod 777 /swift
-ENV HOME=/swift
-
 ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads"
 ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
 
