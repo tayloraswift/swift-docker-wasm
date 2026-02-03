@@ -18,6 +18,7 @@ while true; do
     echo "------------------------------------------------"
     echo "Checking for updates to $IMAGE_NAME..."
     docker pull $IMAGE_NAME
+    docker image prune -f
 
     echo "Launching runner..."
     # --rm: Automatically remove container when it exits
