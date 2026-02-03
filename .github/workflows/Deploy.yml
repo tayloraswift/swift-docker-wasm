@@ -57,9 +57,6 @@ jobs:
                 uses: docker/build-push-action@v6
                 with:
                     context: .
-                    build-args: |
-                        SWIFT_VERSION='6.3'
-                        SWIFT_NIGHTLY='SNAPSHOT-2026-01-16-a'
                     file: ${{ matrix.os.dockerfile }}.Dockerfile
                     push: true
                     labels: ${{ steps.metadata.outputs.labels }}

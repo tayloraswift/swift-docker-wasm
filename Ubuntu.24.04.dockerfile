@@ -3,7 +3,8 @@ ENV DEBIAN_FRONTEND noninteractive
 SHELL ["/bin/bash", "-c"]
 
 ARG SWIFT_VERSION='6.3'
-ARG SWIFT_NIGHTLY
+ARG SWIFT_NIGHTLY='SNAPSHOT-2026-01-16-a'
+ARG SWIFT_WASM_SDK_CHECKSUM='6054e019dce24a3ed875584cffa0621eaf2f6200f6366270b39768347addc133'
 ARG UBUNTU_VERSION='ubuntu24.04'
 
 WORKDIR /home/ubuntu
@@ -93,5 +94,5 @@ ENV PATH="$PATH:/home/ubuntu/x86_64/swift/usr/bin"
 ENV SWIFT_INSTALLATION="/home/ubuntu/x86_64/swift/usr"
 ENV SWIFT_WASM_SDK='$SWIFT_VERSION-$SWIFT_NIGHTLY-wasm32-unknown-wasip1-threads'
 
-RUN swift sdk install https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip --checksum 6054e019dce24a3ed875584cffa0621eaf2f6200f6366270b39768347addc133
+RUN swift sdk install https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip --checksum ${SWIFT_WASM_SDK_CHECKSUM}
 CMD ["sleep", "infinity"]

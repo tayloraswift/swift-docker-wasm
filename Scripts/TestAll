@@ -2,9 +2,7 @@
 set -e
 
 for dockerfile in *.Dockerfile; do
-    docker build . -f $dockerfile -t swiftwasm:__test \
-        --build-arg SWIFT_VERSION='6.3' \
-        --build-arg SWIFT_NIGHTLY='SNAPSHOT-2026-01-16-a'
+    docker build . -f $dockerfile -t swiftwasm:__test
 
     echo $SWIFT_WASM_SDK
     docker run --rm \
