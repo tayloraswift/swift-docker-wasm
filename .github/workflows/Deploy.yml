@@ -1,0 +1,66 @@
+name: deploy
+
+on:
+    workflow_dispatch:
+    #   We build semver tags, and the master branch.
+    push:
+        branches: [ master ]
+        tags:
+            -   '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                os:
+                    -   dockerfile: 'Ubuntu.24.04'
+                        display: 'Ubuntu 24.04'
+                        suffix: '-noble'
+
+                    -   dockerfile: 'Ubuntu.Latest'
+                        display: 'Ubuntu'
+                        suffix: ''
+
+        name: ${{ matrix.os.display }}
+        runs-on: ubuntu-latest
+        permissions:
+            packages: write
+            contents: read
+            attestations: write
+            id-token: write
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Log in to Docker Hub
+                uses: docker/login-action@master
+                with:
+                    username: ${{ vars.DOCKERHUB_USERNAME }}
+                    password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            -   name: Extract Docker metadata
+                uses: docker/metadata-action@master
+                with:
+                    images: tayloraswift/swiftwasm
+                    flavor: |
+                        latest=auto
+                        prefix=
+                        suffix=${{ matrix.os.suffix }}
+                id: metadata
+
+            -   name: Set up Buildx
+                uses: docker/setup-buildx-action@v3
+
+            -   name: Build and push Docker image
+                id: push
+                uses: docker/build-push-action@v6
+                with:
+                    context: .
+                    build-args: |
+                        SWIFT_VERSION='6.3'
+                        SWIFT_NIGHTLY='SNAPSHOT-2026-01-16-a'
+                    file: ${{ matrix.os.dockerfile }}.Dockerfile
+                    push: true
+                    labels: ${{ steps.metadata.outputs.labels }}
+                    tags: ${{ steps.metadata.outputs.tags }}

@@ -1,0 +1,17 @@
+name: test
+
+on:
+    push:
+        branches: [ master ]
+
+jobs:
+    test:
+        name: Test WebAssembly compilation
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Test WebAssembly compilation
+                run: Scripts/TestAll
