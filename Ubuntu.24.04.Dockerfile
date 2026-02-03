@@ -80,6 +80,8 @@ apt -y install \
     jq \
     imagemagick
 
+# clean up cached files
+rm -rf /var/lib/apt/lists/*
 node -v
 
 EOF
