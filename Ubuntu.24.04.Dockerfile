@@ -68,7 +68,6 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt update
 apt -y install \
     nodejs \
-    npm \
     sudo \
     passwd \
     libjemalloc2 \
@@ -81,6 +80,8 @@ apt -y install \
     jq \
     imagemagick
 
+# clean up cached files
+rm -rf /var/lib/apt/lists/*
 node -v
 
 EOF
