@@ -8,7 +8,8 @@ ARG SWIFT_NIGHTLY='SNAPSHOT-2026-01-16-a'
 ARG SWIFT_WASM_SDK_CHECKSUM='6054e019dce24a3ed875584cffa0621eaf2f6200f6366270b39768347addc133'
 ARG UBUNTU_VERSION='ubuntu24.04'
 
-WORKDIR /home/ubuntu
+ENV SWIFT_INSTALLATION="/usr/local/swift"
+ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
@@ -57,19 +58,14 @@ apt -y install \
     unzip \
     zlib1g-dev
 
-# Unpack the Swift toolchain for x86_64
-mkdir -p /home/ubuntu/swift-toolchain/${SWIFT_VERSION}
-cd /home/ubuntu/swift-toolchain/${SWIFT_VERSION}
-
-tar --strip-components=1 -xf /home/ubuntu/toolchain.tar.gz
-rm /home/ubuntu/toolchain.tar.gz
+# Unpack the Swift toolchain to /usr/local/swift
+mkdir -p "$SWIFT_INSTALLATION"
+tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
+rm toolchain.tar.gz
 
 EOF
 
 WORKDIR /home/ubuntu
-
-# Create symbolic links to the Swift toolchains, to make it easier to reference them
-RUN ln -s /home/ubuntu/swift-toolchain/${SWIFT_VERSION} /home/ubuntu/swift-toolchain/swift
 
 RUN apt install -y \
     sudo \
@@ -93,13 +89,16 @@ RUN apt dist-upgrade
 RUN apt install -y \
     imagemagick
 
-# allow other users (like the host user) to access the toolchain in /home/ubuntu
-RUN chmod 755 /home/ubuntu
-USER ubuntu
+# create a neutral home directory for SDKs that is writable by everyone
+# this allows any user (UID 1000, 1001, etc.) to use the SDKs without permission errors
+RUN mkdir -p /swift
+RUN chmod 777 /swift
+ENV HOME=/swift
 
-ENV PATH="$PATH:/home/ubuntu/swift-toolchain/swift/usr/bin"
-ENV SWIFT_INSTALLATION="/home/ubuntu/swift-toolchain/swift/usr"
-ENV SWIFT_WASM_SDK="$SWIFT_VERSION-$SWIFT_NIGHTLY-wasm32-unknown-wasip1-threads"
+ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads"
 
 RUN swift sdk install https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip --checksum ${SWIFT_WASM_SDK_CHECKSUM}
+
+# Switch back to the standard user for default execution
+USER ubuntu
 CMD ["sleep", "infinity"]

@@ -7,7 +7,7 @@ for dockerfile in *.Dockerfile; do
     echo $SWIFT_WASM_SDK
     docker run --rm \
         -u "$(id -u):$(id -g)" \
-        -e HOME=/tmp \
+        -e HOME=/swift \
         -v=$PWD/Tests:/swift \
         -w=/swift \
         swiftwasm:__test \
