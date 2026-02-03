@@ -13,5 +13,8 @@ jobs:
             -   name: Checkout repository
                 uses: actions/checkout@v4
 
+            -   name: Add permissions for Docker
+                run: chmod -R a+w Tests/
+
             -   name: Test WebAssembly compilation
                 run: Scripts/TestAll
