@@ -63,11 +63,12 @@ mkdir -p "$SWIFT_INSTALLATION"
 tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
 rm toolchain.tar.gz
 
-EOF
-
-WORKDIR /home/ubuntu
-
-RUN apt install -y \
+# need to install a newer nodejs than is available by default
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt update
+apt -y install \
+    nodejs \
+    npm \
     sudo \
     passwd \
     libjemalloc2 \
@@ -76,18 +77,18 @@ RUN apt install -y \
     libncurses-dev \
     liblz4-dev \
     binaryen \
-    nodejs \
-    npm \
     gh \
-    jq
+    jq \
+    imagemagick
+
+node -v
+
+EOF
+
+WORKDIR /home/ubuntu
 
 RUN passwd -d ubuntu
 RUN usermod -aG sudo ubuntu
-
-RUN apt update
-RUN apt dist-upgrade
-RUN apt install -y \
-    imagemagick
 
 ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads"
 ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
