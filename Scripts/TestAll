@@ -11,6 +11,6 @@ for dockerfile in *.Dockerfile; do
         -v=$PWD/Tests:/swift \
         -w=/swift \
         swiftwasm:__test \
-        /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK"'
+        /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
 
 done

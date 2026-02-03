@@ -96,8 +96,12 @@ RUN chmod 777 /swift
 ENV HOME=/swift
 
 ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads"
+ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
 
-RUN swift sdk install https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip --checksum ${SWIFT_WASM_SDK_CHECKSUM}
+RUN swift sdk install \
+    https://github.com/swiftwasm/swift/releases/download/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}/swift-wasm-${SWIFT_VERSION}-${SWIFT_NIGHTLY}-wasm32-unknown-wasip1-threads.artifactbundle.zip \
+    --checksum ${SWIFT_WASM_SDK_CHECKSUM} \
+    --swift-sdks-path "$SWIFT_WASM_SDK_PATH"
 
 # Switch back to the standard user for default execution
 USER ubuntu
