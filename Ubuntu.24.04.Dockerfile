@@ -88,6 +88,8 @@ RUN apt dist-upgrade
 RUN apt install -y \
     imagemagick
 
+# allow other users (like the host user) to access the toolchain in /home/ubuntu
+RUN chmod 755 /home/ubuntu
 USER ubuntu
 
 ENV PATH="$PATH:/home/ubuntu/x86_64/swift/usr/bin"
