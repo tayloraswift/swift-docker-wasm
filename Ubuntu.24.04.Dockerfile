@@ -14,6 +14,11 @@ ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
 
+# -e: Exit immediately if a command exits with a non-zero status.
+# -u: Treat unset variables as an error.
+# -o pipefail: specific for pipes; if 'curl' fails in 'curl | bash', the whole command fails.
+set -euo pipefail
+
 apt update
 apt -y install curl
 
@@ -29,7 +34,7 @@ fi
 
 # Note: The Docker CLI does not print the correct URL to the console, but the actual
 # interpolated string passed to `curl` is correct.
-curl "https://download.swift.org/\
+curl -fsSL "https://download.swift.org/\
 swift-${SWIFT_VERSION}-branch/\
 ${UBUNTU_VERSION//[.]/}${SWIFT_PLATFORM_SUFFIX}/\
 swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}/\
@@ -58,13 +63,18 @@ apt -y install \
     unzip \
     zlib1g-dev
 
+# needed for nodesource setup
+apt -y install \
+    lsb-release \
+    ca-certificates
+
 # Unpack the Swift toolchain to /usr/local/swift
 mkdir -p "$SWIFT_INSTALLATION"
 tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
 rm toolchain.tar.gz
 
 # need to install a newer nodejs than is available by default
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
 apt update
 apt -y install \
     nodejs \
