@@ -3,7 +3,6 @@ FROM tayloraswift/swiftwasm:master
 USER root
 
 # Install GitHub Actions Runner dependencies
-# libicu and libdigest-sha-perl are commonly required by the runner agent
 RUN apt update && apt install -y \
     curl \
     jq \
@@ -17,12 +16,18 @@ WORKDIR /home/ubuntu
 
 # https://github.com/actions/runner/releases
 ARG RUNNER_VERSION="2.331.0"
-RUN mkdir actions-runner && cd actions-runner \
-    && curl -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-    && tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-    && rm actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+# bring in the architecture argument (automatically set by Docker)
+ARG TARGETARCH
 
-# Copy the entrypoint script
+RUN mkdir actions-runner && cd actions-runner \
+    && if [ "$TARGETARCH" = "amd64" ]; then GH_ARCH="x64"; \
+       elif [ "$TARGETARCH" = "arm64" ]; then GH_ARCH="arm64"; \
+       else echo "Unsupported architecture: $TARGETARCH"; exit 1; fi \
+    && echo "Downloading Runner for $GH_ARCH..." \
+    && curl -o actions-runner.tar.gz -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${GH_ARCH}-${RUNNER_VERSION}.tar.gz" \
+    && tar xzf ./actions-runner.tar.gz \
+    && rm actions-runner.tar.gz
+
 COPY --chown=ubuntu:ubuntu Scripts/runner-entrypoint.sh /home/ubuntu/actions-runner/entrypoint.sh
 RUN chmod +x /home/ubuntu/actions-runner/entrypoint.sh
 
