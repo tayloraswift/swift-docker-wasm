@@ -8,7 +8,7 @@ docker build . -f $dockerfile -t swiftwasm:__test
 echo $SWIFT_WASM_SDK
 docker run --rm \
     -u ubuntu \
-    -v=$PWD/Tests:$HOME/swift \
-    -w=$HOME/swift \
+    -v=$PWD/Tests:/home/ubuntu/swift \
+    -w=/home/ubuntu/swift \
     swiftwasm:__test \
     /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
