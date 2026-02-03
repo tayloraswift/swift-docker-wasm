@@ -99,4 +99,5 @@ RUN swift sdk install \
 
 # Switch back to the standard user for default execution
 USER ubuntu
+ENV HOME /home/ubuntu
 CMD ["sleep", "infinity"]
