@@ -1,4 +1,4 @@
-FROM tayloraswift/swiftwasm:latest
+FROM tayloraswift/swiftwasm:master
 
 USER root
 
