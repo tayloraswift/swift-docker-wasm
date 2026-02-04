@@ -13,7 +13,7 @@ ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
 COPY aws.public.key aws.public.key
 COPY swift.public.key swift.public.key
-COPY nodesource.public.key /usr/share/keyrings/nodesource.gpg
+COPY nodesource.public.gpg /usr/share/keyrings/nodesource.gpg
 
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
