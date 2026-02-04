@@ -11,6 +11,8 @@ ARG UBUNTU_VERSION='ubuntu24.04'
 ENV SWIFT_INSTALLATION="/usr/local/swift"
 ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
+COPY aws.public.key aws.public.key
+
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
 
@@ -95,14 +97,14 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "a
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" -o "awscliv2.zip.sig"
 
 # import the AWS Public Key (key is public/static from AWS docs)
-curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x83611813D18231E8B0E85D14603B6D300D609772" | gpg --import
+gpg --import aws.public.key
 gpg --verify awscliv2.zip.sig awscliv2.zip
 
 unzip awscliv2.zip
 ./aws/install
 
 # clean up cached files
-rm -rf aws awscliv2.zip awscliv2.zip.sig
+rm -rf aws awscliv2.zip awscliv2.zip.sig aws-public.key
 rm -rf /var/lib/apt/lists/*
 
 # verify installations
