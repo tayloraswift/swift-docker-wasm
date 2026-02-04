@@ -77,10 +77,12 @@ apt -y install \
 
 # Unpack the Swift toolchain to /usr/local/swift
 mkdir -p "$SWIFT_INSTALLATION"
-gpg --import /tmp/swift.public.key
+gpg --import swift.public.key
 gpg --verify toolchain.tar.gz.sig toolchain.tar.gz
 tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
 rm toolchain.tar.gz
+rm toolchain.tar.gz.sig
+rm swift.public.key
 
 # need to install a newer nodejs than is available by default
 echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
