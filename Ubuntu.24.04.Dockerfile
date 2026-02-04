@@ -92,12 +92,17 @@ apt -y install \
 
 # works because AWS uses 'aarch64' and 'x86_64' just like Swift
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" -o "awscliv2.zip.sig"
+
 unzip awscliv2.zip
 
+# import the AWS Public Key (key is public/static from AWS docs)
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 83611813D18231E8B0E85D14603B6D300D609772
+gpg --verify awscliv2.zip.sig awscliv2.zip
 ./aws/install
 
 # clean up cached files
-rm -rf aws awscliv2.zip
+rm -rf aws awscliv2.zip awscliv2.zip.sig
 rm -rf /var/lib/apt/lists/*
 
 # verify installations
