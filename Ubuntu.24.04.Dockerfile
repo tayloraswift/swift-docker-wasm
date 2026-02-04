@@ -11,6 +11,10 @@ ARG UBUNTU_VERSION='ubuntu24.04'
 ENV SWIFT_INSTALLATION="/usr/local/swift"
 ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
+COPY aws.public.key aws.public.key
+COPY swift.public.key swift.public.key
+COPY nodesource.public.gpg /usr/share/keyrings/nodesource.gpg
+
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
 
@@ -34,12 +38,15 @@ fi
 
 # Note: The Docker CLI does not print the correct URL to the console, but the actual
 # interpolated string passed to `curl` is correct.
-curl -fsSL "https://download.swift.org/\
+SWIFT_TOOLCHAIN_URL="https://download.swift.org/\
 swift-${SWIFT_VERSION}-branch/\
 ${UBUNTU_VERSION//[.]/}${SWIFT_PLATFORM_SUFFIX}/\
 swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}/\
-swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz" \
-    -o toolchain.tar.gz
+swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz"
+
+echo "Downloading Swift toolchain from: $SWIFT_TOOLCHAIN_URL"
+curl -fsSL "$SWIFT_TOOLCHAIN_URL.sig" -o toolchain.tar.gz.sig
+curl -fsSL "$SWIFT_TOOLCHAIN_URL" -o toolchain.tar.gz
 
 apt -y dist-upgrade
 
@@ -70,11 +77,15 @@ apt -y install \
 
 # Unpack the Swift toolchain to /usr/local/swift
 mkdir -p "$SWIFT_INSTALLATION"
+gpg --import swift.public.key
+gpg --verify toolchain.tar.gz.sig toolchain.tar.gz
 tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
 rm toolchain.tar.gz
+rm toolchain.tar.gz.sig
+rm swift.public.key
 
 # need to install a newer nodejs than is available by default
-curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
+echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 apt update
 apt -y install \
     nodejs \
@@ -90,9 +101,24 @@ apt -y install \
     jq \
     imagemagick
 
+# works because AWS uses 'aarch64' and 'x86_64' just like Swift
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" -o "awscliv2.zip.sig"
+
+# import the AWS Public Key (key is public/static from AWS docs)
+gpg --import aws.public.key
+gpg --verify awscliv2.zip.sig awscliv2.zip
+
+unzip awscliv2.zip
+./aws/install
+
 # clean up cached files
+rm -rf aws awscliv2.zip awscliv2.zip.sig aws-public.key
 rm -rf /var/lib/apt/lists/*
+
+# verify installations
 node -v
+aws --version
 
 EOF
 
