@@ -94,11 +94,11 @@ apt -y install \
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" -o "awscliv2.zip.sig"
 
-unzip awscliv2.zip
-
 # import the AWS Public Key (key is public/static from AWS docs)
-gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 83611813D18231E8B0E85D14603B6D300D609772
+curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x83611813D18231E8B0E85D14603B6D300D609772" | gpg --import
 gpg --verify awscliv2.zip.sig awscliv2.zip
+
+unzip awscliv2.zip
 ./aws/install
 
 # clean up cached files
