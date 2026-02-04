@@ -12,6 +12,8 @@ ENV SWIFT_INSTALLATION="/usr/local/swift"
 ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
 COPY aws.public.key aws.public.key
+COPY swift.public.key swift.public.key
+COPY nodesource.public.key /usr/share/keyrings/nodesource.gpg
 
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
@@ -36,12 +38,15 @@ fi
 
 # Note: The Docker CLI does not print the correct URL to the console, but the actual
 # interpolated string passed to `curl` is correct.
-curl -fsSL "https://download.swift.org/\
+SWIFT_TOOLCHAIN_URL="https://download.swift.org/\
 swift-${SWIFT_VERSION}-branch/\
 ${UBUNTU_VERSION//[.]/}${SWIFT_PLATFORM_SUFFIX}/\
 swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}/\
-swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz" \
-    -o toolchain.tar.gz
+swift-${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz"
+
+echo "Downloading Swift toolchain from: $SWIFT_TOOLCHAIN_URL"
+curl -fsSL "$SWIFT_TOOLCHAIN_URL.sig" -o toolchain.tar.gz.sig
+curl -fsSL "$SWIFT_TOOLCHAIN_URL" -o toolchain.tar.gz
 
 apt -y dist-upgrade
 
@@ -72,6 +77,8 @@ apt -y install \
 
 # Unpack the Swift toolchain to /usr/local/swift
 mkdir -p "$SWIFT_INSTALLATION"
+gpg --import /tmp/swift-public.key
+gpg --verify toolchain.tar.gz.sig toolchain.tar.gz
 tar --strip-components=1 -xf toolchain.tar.gz -C "$SWIFT_INSTALLATION"
 rm toolchain.tar.gz
 
