@@ -90,9 +90,19 @@ apt -y install \
     jq \
     imagemagick
 
+# works because AWS uses 'aarch64' and 'x86_64' just like Swift
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+
+./aws/install
+
 # clean up cached files
+rm -rf aws awscliv2.zip
 rm -rf /var/lib/apt/lists/*
+
+# verify installations
 node -v
+aws --version
 
 EOF
 
