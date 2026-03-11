@@ -13,19 +13,18 @@ if [ -z "$GH_RUNNER_PAT" ]; then
 fi
 
 # 2. Validate Target Repository
-if [ -z "$GITHUB_OWNER" ] || [ -z "$GITHUB_REPO" ]; then
-    echo "❌ Error: GITHUB_OWNER and/or GITHUB_REPO are not set."
+if [ -z "$GITHUB_OWNER" ]; then
+    echo "❌ Error: GITHUB_OWNER is not set."
     echo "   This runner script is generic; you must tell it where to connect."
     echo "   "
     echo "   Usage Example:"
     echo "     export GITHUB_OWNER='my-org'"
-    echo "     export GITHUB_REPO='my-private-repo'"
     echo "     ./runner-start.sh"
     exit 1
 fi
 
 echo "🚀 Starting ephemeral runner loop..."
-echo "   Target: $GITHUB_OWNER/$GITHUB_REPO"
+echo "   Target: $GITHUB_OWNER"
 echo "   Image:  $IMAGE_NAME"
 
 while true; do
@@ -43,7 +42,6 @@ while true; do
         --name "$CONTAINER_NAME" \
         -e GITHUB_PAT="$GH_RUNNER_PAT" \
         -e GITHUB_OWNER="$GITHUB_OWNER" \
-        -e GITHUB_REPO="$GITHUB_REPO" \
         -e RUNNER_NAME="${RUNNER_NAME:-runner-$(date +%s)}" \
         $IMAGE_NAME
 
