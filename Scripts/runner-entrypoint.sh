@@ -12,7 +12,7 @@ if [ -z "$GITHUB_PAT" ]; then
     exit 1
 fi
 
-REG_URL="https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runners/registration-token"
+REG_URL="https://api.github.com/orgs/${GITHUB_OWNER}/actions/runners/registration-token"
 echo "Requesting registration token from: $REG_URL"
 
 # 1. Get the registration token using the PAT
@@ -29,7 +29,7 @@ fi
 # --unattended: Don't ask for user input
 # --replace: Replace any existing runner with the same name
 ./config.sh \
-    --url "https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}" \
+    --url "https://github.com/${GITHUB_OWNER}" \
     --token "${RUNNER_TOKEN}" \
     --ephemeral \
     --unattended \
