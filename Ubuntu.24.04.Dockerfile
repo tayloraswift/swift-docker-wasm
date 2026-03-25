@@ -88,19 +88,19 @@ rm swift.public.key
 echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 apt update
 apt -y install \
-    nodejs \
-    sudo \
-    passwd \
-    libjemalloc2 \
-    libjemalloc-dev \
-    libsqlite3-dev \
-    libncurses-dev \
-    liblz4-dev \
     binaryen \
     gh \
     git-filter-repo \
     jq \
-    imagemagick
+    imagemagick \
+    libjemalloc2 \
+    libjemalloc-dev \
+    liblz4-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    nodejs \
+    passwd \
+    sudo
 
 # works because AWS uses 'aarch64' and 'x86_64' just like Swift
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
