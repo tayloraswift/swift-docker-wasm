@@ -36,9 +36,11 @@ while true; do
     docker image prune -f
 
     echo "Launching runner..."
-    # --rm: Automatically remove container when it exits
-    # --name: Specific name to prevent collisions
+    # disable IPv6, to prevent long timeouts in buildings that lack IPv6 access
+    # if your runners have IPv6 access, remove the `sysctl` lines
     docker run --rm \
+        --sysctl net.ipv6.conf.all.disable_ipv6=1 \
+        --sysctl net.ipv6.conf.default.disable_ipv6=1 \
         --name "$CONTAINER_NAME" \
         -e GITHUB_PAT="$GH_RUNNER_PAT" \
         -e GITHUB_OWNER="$GITHUB_OWNER" \

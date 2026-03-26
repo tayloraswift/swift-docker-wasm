@@ -29,9 +29,9 @@ To set up a runner on a Mac Mini, you need a single script. This script handles:
 * Docker Desktop (or OrbStack) installed and running.
 * A **GitHub Personal Access Token (Classic)** with `repo` scope.
 
-### 2. The Host Script (`start_runner.sh`)
+### 2. The Host Script (`start_ci_system.sh`)
 
-Save the following script on your Mac Mini (e.g., at `~/start_runner.sh`). This script can be used to target **any** repository (public or private) by changing the configuration variables.
+Save the following script on your Mac Mini (e.g., at `~/start_ci_system.sh`). This script can be used to target **any** repository (public or private) by changing the configuration variables.
 
 ```bash
 #!/bin/bash
@@ -112,14 +112,14 @@ caffeinate -i ./runner-start.sh
 
 1. Make the script executable:
 ```bash
-chmod +x ~/start_runner.sh
+chmod +x ~/start_ci_system.sh
 
 ```
 
 
 2. Run it:
 ```bash
-~/start_runner.sh
+~/start_ci_system.sh
 
 ```
 
@@ -143,7 +143,7 @@ To update the Swift version or SDK:
 To use this runner with a private repository on a different account:
 
 1. Generate a PAT on the **other** account.
-2. Edit `~/start_runner.sh` on the Mac Mini.
+2. Edit `~/start_ci_system.sh` on the Mac Mini.
 3. Update `YOUR_GITHUB_PAT`, `GITHUB_OWNER`, and `GITHUB_REPO`.
 4. Leave `IMAGE_NAME` as `tayloraswift/swiftwasm:runner`.
 5. Restart the script.
