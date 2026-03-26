@@ -100,7 +100,8 @@ apt -y install \
     libssl-dev \
     nodejs \
     passwd \
-    sudo
+    sudo \
+    xxd
 
 # works because AWS uses 'aarch64' and 'x86_64' just like Swift
 curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
