@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 dockerfile='Ubuntu.24.04.Dockerfile'
 
