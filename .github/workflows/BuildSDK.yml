@@ -20,51 +20,47 @@ jobs:
     WebAssembly:
         runs-on: ubuntu-24.04
         steps:
-            -   name: 💝 Checkout swift-sdk-generator 💝
-                uses: actions/checkout@v6
-                with:
-                    repository: swiftlang/swift-sdk-generator
-
             -   name: 💝 Install Swift 💝
                 uses: rarestype/swift-install-action@v1
                 with:
                     swift-prefix: ${{ inputs.swift-prefix }}
                     swift-id: ${{ inputs.swift-id }}
 
-            -   name: 💝 Download wasi-sdk 💝
-                env:
-                    WASI_SDK_VERSION: ${{ inputs.wasi-sdk }}
-                run: |
-                    WASI_SDK_URL="https://github.com/WebAssembly/wasi-sdk/releases/download/\
-                    wasi-sdk-${WASI_SDK_VERSION}/wasi-sysroot-${WASI_SDK_VERSION}.0.tar.gz"
-
-                    curl -fLS "$WASI_SDK_URL" -o wasi-sysroot.tar.gz
-
-                    mkdir wasi-sysroot
-                    tar -xzf wasi-sysroot.tar.gz -C wasi-sysroot --strip-components=1
-                    rm wasi-sysroot.tar.gz
-
-            -   name: 💝 Build SDK generator 💝
-                run: |
-                    swift build -c release --product swift-sdk-generator
-                    mv .build/release/swift-sdk-generator .
-
-            -   name: 💝 Build SDK 💝
-                run: |
-                    for target in wasm32-unknown-wasip1-threads wasm32-unknown-wasip1; do
-                        ./swift-sdk-generator make-wasm-sdk \
-                            --target "$target" \
-                            --wasi-sysroot wasi-sysroot
-
-                        tar -czf "${target}.artifactbundle.tar.gz" \
-                            -C Bundles wasm.artifactbundle
-                        rm -rf Bundles
-                    done
-
-            -   name: 💝 Upload SDK artifacts 💝
-                uses: actions/upload-artifact@v7
+            -   name: 💝 Checkout Swift project 💝
+                uses: actions/checkout@v6
                 with:
-                    name: swift-wasm-sdk-bundle
-                    path: ./*.artifactbundle.tar.gz
-                    retention-days: 1
-                    compression-level: 0
+                    repository: swiftlang/swift
+                    path: swift
+
+            -   name: 💝 Checkout related repositories 💝
+                run: |
+                    SWIFT_PREFIX="${{ inputs.swift-prefix }}"
+                    SWIFT_TAG="${SWIFT_PREFIX##*/}"
+                    echo "checking out tag: ${SWIFT_TAG}"
+
+                    swift/utils/update-checkout --clone --tag "$SWIFT_TAG"
+
+            -   name: 💝 Build  💝
+                run: |
+                    SWIFT_PATH="${SWIFT_INSTALLATION}/bin"
+                    swift/utils/build-script \
+                        --skip-build-llvm \
+                        --skip-build-swift \
+                        --skip-build-cmark \
+                        --build-wasm-stdlib \
+                        --native-swift-tools-path="$SWIFT_PATH" \
+                        --native-clang-tools-path="$SWIFT_PATH" \
+                        --native-llvm-tools-path="$SWIFT_PATH"
+
+            -   name: 💝 List files 💝
+                run: |
+                    ls -l swift-sdk-generator
+                    ls -l swift-sdk-generator/Bundles
+
+            # -   name: 💝 Upload SDK artifacts 💝
+            #     uses: actions/upload-artifact@v7
+            #     with:
+            #         name: swift-wasm-sdk-bundle
+            #         path: ./*.artifactbundle.tar.gz
+            #         retention-days: 1
+            #         compression-level: 0
