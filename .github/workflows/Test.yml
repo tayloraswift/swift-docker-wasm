@@ -7,10 +7,18 @@ on:
         branches: [ master ]
 
 jobs:
+    build-sdk:
+        name: Build Swift WebAssembly SDK
+        uses: ./.github/workflows/BuildSDK.yml
+        with:
+            swift-prefix: 'swift-6.3-release/ubuntu2404/swift-6.3-RELEASE'
+            swift-id: 'swift-6.3-RELEASE-ubuntu24.04'
+            wasi-sdk: '32'
+
     test:
         name: Test WebAssembly compilation
         runs-on: ubuntu-latest
-
+        needs: [build-sdk]
         steps:
             -   name: Checkout repository
                 uses: actions/checkout@v6

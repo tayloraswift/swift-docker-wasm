@@ -1,0 +1,41 @@
+name: Build Swift WebAssembly SDK
+
+on:
+    workflow_call:
+        inputs:
+            swift-prefix:
+                description: 'swift toolchain url prefix'
+                required: true
+                type: string
+            swift-id:
+                description: 'swift toolchain identifier'
+                required: true
+                type: string
+            wasi-sdk:
+                description: 'the wasi sdk version to use'
+                required: true
+                type: string
+
+on:
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    WebAssembly:
+        runs-on: ubuntu-24.04
+        steps:
+            -   name: 💝 Checkout repository 💝
+                uses: actions/checkout@v6
+
+            -   name: 💝 Install Swift 💝
+                uses: rarestype/swift-install-action@v1
+                with:
+                    swift-prefix: ${{ inputs.swift-prefix }}
+                    swift-id: ${{ inputs.swift-id }}
+
+            -   name: 💝 Build SDK 💝
+                run: Scripts/BuildSDK
+                env:
+                    WASI_SDK_VERSION=${{ inputs.wasi-sdk }}
