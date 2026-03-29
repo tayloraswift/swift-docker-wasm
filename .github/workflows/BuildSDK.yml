@@ -32,7 +32,6 @@ jobs:
                     swift-id: ${{ inputs.swift-id }}
 
             -   name: 💝 Download wasi-sdk 💝
-                run: Scripts/BuildSDK
                 env:
                     WASI_SDK_VERSION: ${{ inputs.wasi-sdk }}
                 run: |
