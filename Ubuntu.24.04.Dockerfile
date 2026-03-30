@@ -3,38 +3,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 
 ARG TARGETARCH
-ARG SWIFT_VERSION='6.3'
+ARG SWIFT_WASM_TRIPLE='wasm32-unknown-wasip1-threads'
+ARG SWIFT_RELEASE='6.3'
 ARG SWIFT_NIGHTLY=
 ARG UBUNTU_VERSION='ubuntu24.04'
 
-# compute version strings
-RUN <<EOF
-if [ "$TARGETARCH" = "arm64" ]; then
-    echo "Configuring for aarch64..."
-    SWIFT_PLATFORM="aarch64"
-    SWIFT_PLATFORM_SUFFIX="-aarch64"
-else
-    echo "Configuring for x86_64..."
-    SWIFT_PLATFORM="x86_64"
-    SWIFT_PLATFORM_SUFFIX=""
-fi
-
-# Note: The Docker CLI does not print the correct URL to the console, but the actual
-# interpolated string passed to `curl` is correct.
-if [[ -v SWIFT_NIGHTLY && -n "$SWIFT_NIGHTLY" ]]; then
-    SWIFT_BRANCH="swift-${SWIFT_VERSION}-branch"
-    SWIFT_QUALIFIER="${SWIFT_NIGHTLY}"
-    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_QUALIFIER}"
-    else
-    SWIFT_BRANCH="swift-${SWIFT_VERSION}-release"
-    SWIFT_QUALIFIER='RELEASE'
-    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-${SWIFT_QUALIFIER}"
-fi
-
-EOF
 
 # these variables exported to the container
-ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_QUALIFIER}-wasm32-unknown-wasip1-threads"
+ENV SWIFT_VERSION="${SWIFT_RELEASE}-${SWIFT_NIGHTLY:-RELEASE}"
+ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_WASM_TRIPLE}"
 ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
 ENV SWIFT_INSTALLATION="/usr/local/swift"
 ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
@@ -46,27 +23,39 @@ COPY nodesource.public.gpg /usr/share/keyrings/nodesource.gpg
 # Squash the following RUN commands into a single command to reduce image size
 RUN <<EOF
 
-# -e: Exit immediately if a command exits with a non-zero status.
-# -u: Treat unset variables as an error.
-# -o pipefail: specific for pipes; if 'curl' fails in 'curl | bash', the whole command fails.
 set -euo pipefail
+
+ARCHITECTURE="${TARGETARCH/arm64/aarch64}"
+
+# Note: The Docker CLI does not print the correct URL to the console, but the actual
+# interpolated string passed to `curl` is correct.
+if [[ -v SWIFT_NIGHTLY && -n "$SWIFT_NIGHTLY" ]]; then
+    SWIFT_BRANCH="swift-${SWIFT_RELEASE}-branch"
+    SWIFT_TOOLCHAIN="${SWIFT_RELEASE}-DEVELOPMENT-${SWIFT_NIGHTLY}"
+else
+    SWIFT_BRANCH="swift-${SWIFT_RELEASE}-release"
+    SWIFT_TOOLCHAIN="${SWIFT_VERSION}"
+fi
+
 
 apt update
 apt -y install curl
 
 
 SWIFT_WASM_URL="https://github.com/swiftwasm/swift/releases/download/\
-swift-wasm-${SWIFT_VERSION}-${SWIFT_QUALIFIER}/\
+swift-wasm-${SWIFT_VERSION}/\
 swift-wasm-${SWIFT_WASM_SDK}.artifactbundle.zip"
 
 echo "Downloading Swift WebAssembly SDK from: ${SWIFT_WASM_URL}"
 curl -fsSL "${SWIFT_WASM_URL}" -o swift-wasm.artifactbundle.zip
 
-
+# x86_64 is implicit in the Swift platform naming scheme
+SWIFT_PLATFORM="${UBUNTU_VERSION}-${ARCHITECTURE}"
+SWIFT_PLATFORM="${SWIFT_PLATFORM%-x86_64}"
 SWIFT_TOOLCHAIN_URL="https://download.swift.org/${SWIFT_BRANCH}/\
-${UBUNTU_VERSION//[.]/}${SWIFT_PLATFORM_SUFFIX}/\
+${SWIFT_TOOLCHAIN_PLATFORM//[.]/}/\
 swift-${SWIFT_TOOLCHAIN}/\
-swift-${SWIFT_TOOLCHAIN}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz"
+swift-${SWIFT_TOOLCHAIN}-${SWIFT_PLATFORM}.tar.gz"
 
 echo "Downloading Swift toolchain from: ${SWIFT_TOOLCHAIN_URL}"
 curl -fsSL "${SWIFT_TOOLCHAIN_URL}.sig" -o toolchain.tar.gz.sig
@@ -131,10 +120,10 @@ apt -y install \
     sudo \
     xxd
 
-# works because AWS uses 'aarch64' and 'x86_64' just like Swift
-curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" \
+# AWS uses 'aarch64' and 'x86_64'
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${ARCHITECTURE}.zip" \
     -o "awscliv2.zip"
-curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" \
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${ARCHITECTURE}.zip.sig" \
     -o "awscliv2.zip.sig"
 
 # import the AWS Public Key (key is public/static from AWS docs)
