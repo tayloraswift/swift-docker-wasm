@@ -7,6 +7,35 @@ ARG SWIFT_VERSION='6.3'
 ARG SWIFT_NIGHTLY=
 ARG UBUNTU_VERSION='ubuntu24.04'
 
+# compute version strings
+RUN <<EOF
+if [ "$TARGETARCH" = "arm64" ]; then
+    echo "Configuring for aarch64..."
+    SWIFT_PLATFORM="aarch64"
+    SWIFT_PLATFORM_SUFFIX="-aarch64"
+else
+    echo "Configuring for x86_64..."
+    SWIFT_PLATFORM="x86_64"
+    SWIFT_PLATFORM_SUFFIX=""
+fi
+
+# Note: The Docker CLI does not print the correct URL to the console, but the actual
+# interpolated string passed to `curl` is correct.
+if [[ -v SWIFT_NIGHTLY && -n "$SWIFT_NIGHTLY" ]]; then
+    SWIFT_BRANCH="swift-${SWIFT_VERSION}-branch"
+    SWIFT_QUALIFIER="${SWIFT_NIGHTLY}"
+    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_QUALIFIER}"
+    else
+    SWIFT_BRANCH="swift-${SWIFT_VERSION}-release"
+    SWIFT_QUALIFIER='RELEASE'
+    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-${SWIFT_QUALIFIER}"
+fi
+
+EOF
+
+# these variables exported to the container
+ENV SWIFT_WASM_SDK="${SWIFT_VERSION}-${SWIFT_QUALIFIER}-wasm32-unknown-wasip1-threads"
+ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
 ENV SWIFT_INSTALLATION="/usr/local/swift"
 ENV PATH="$PATH:$SWIFT_INSTALLATION/usr/bin"
 
@@ -26,34 +55,23 @@ set -euo pipefail
 apt update
 apt -y install curl
 
-if [ "$TARGETARCH" = "arm64" ]; then
-    echo "Configuring for aarch64..."
-    SWIFT_PLATFORM="aarch64"
-    SWIFT_PLATFORM_SUFFIX="-aarch64"
-else
-    echo "Configuring for x86_64..."
-    SWIFT_PLATFORM="x86_64"
-    SWIFT_PLATFORM_SUFFIX=""
-fi
 
-# Note: The Docker CLI does not print the correct URL to the console, but the actual
-# interpolated string passed to `curl` is correct.
-if [[ -v SWIFT_NIGHTLY && -n "$SWIFT_NIGHTLY" ]]; then
-    SWIFT_BRANCH="swift-${SWIFT_VERSION}-branch"
-    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-DEVELOPMENT-${SWIFT_NIGHTLY}"
-else
-    SWIFT_BRANCH="swift-${SWIFT_VERSION}-release"
-    SWIFT_TOOLCHAIN="${SWIFT_VERSION}-RELEASE"
-fi
+SWIFT_WASM_URL="https://github.com/swiftwasm/swift/releases/download/\
+swift-wasm-${SWIFT_VERSION}-${SWIFT_QUALIFIER}/\
+swift-wasm-${SWIFT_WASM_SDK}.artifactbundle.zip"
+
+echo "Downloading Swift WebAssembly SDK from: ${SWIFT_WASM_URL}"
+curl -fsSL "${SWIFT_WASM_URL}" -o swift-wasm.artifactbundle.zip
+
 
 SWIFT_TOOLCHAIN_URL="https://download.swift.org/${SWIFT_BRANCH}/\
 ${UBUNTU_VERSION//[.]/}${SWIFT_PLATFORM_SUFFIX}/\
 swift-${SWIFT_TOOLCHAIN}/\
 swift-${SWIFT_TOOLCHAIN}-${UBUNTU_VERSION}${SWIFT_PLATFORM_SUFFIX}.tar.gz"
 
-echo "Downloading Swift toolchain from: $SWIFT_TOOLCHAIN_URL"
-curl -fsSL "$SWIFT_TOOLCHAIN_URL.sig" -o toolchain.tar.gz.sig
-curl -fsSL "$SWIFT_TOOLCHAIN_URL" -o toolchain.tar.gz
+echo "Downloading Swift toolchain from: ${SWIFT_TOOLCHAIN_URL}"
+curl -fsSL "${SWIFT_TOOLCHAIN_URL}.sig" -o toolchain.tar.gz.sig
+curl -fsSL "${SWIFT_TOOLCHAIN_URL}" -o toolchain.tar.gz
 
 apt -y dist-upgrade
 
@@ -91,8 +109,12 @@ rm toolchain.tar.gz
 rm toolchain.tar.gz.sig
 rm swift.public.key
 
+swift sdk install swift-wasm.artifactbundle.zip --swift-sdks-path "$SWIFT_WASM_SDK_PATH"
+
 # need to install a newer nodejs than is available by default
-echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] \
+https://deb.nodesource.com/node_24.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+
 apt update
 apt -y install \
     binaryen \
@@ -111,8 +133,10 @@ apt -y install \
     xxd
 
 # works because AWS uses 'aarch64' and 'x86_64' just like Swift
-curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" -o "awscliv2.zip"
-curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" -o "awscliv2.zip.sig"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip" \
+    -o "awscliv2.zip"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-${SWIFT_PLATFORM}.zip.sig" \
+    -o "awscliv2.zip.sig"
 
 # import the AWS Public Key (key is public/static from AWS docs)
 gpg --import aws.public.key
@@ -128,6 +152,8 @@ rm -rf /var/lib/apt/lists/*
 # verify installations
 node -v
 aws --version
+swift --version
+swift sdk list --swift-sdks-path "$SWIFT_WASM_SDK_PATH"
 
 EOF
 
@@ -135,12 +161,6 @@ WORKDIR /home/ubuntu
 
 RUN passwd -d ubuntu
 RUN usermod -aG sudo ubuntu
-
-ENV SWIFT_WASM_SDK="${SWIFT_TOOLCHAIN}-wasm32-unknown-wasip1-threads"
-ENV SWIFT_WASM_SDK_PATH='/usr/local/share/swift'
-
-RUN swift sdk install /Bundles/wasm32-unknown-wasip1-threads.artifactbundle.tar.gz \
-    --swift-sdks-path "$SWIFT_WASM_SDK_PATH"
 
 # Switch back to the standard user for default execution
 USER ubuntu
