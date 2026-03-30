@@ -59,6 +59,8 @@ jobs:
                         --skip-build-swift \
                         --skip-build-cmark \
                         --skip-test-swift \
+                        --test 0 \
+                        --validation-test 0 \
                         --skip-test-cmark \
                         --skip-test-llvm \
                         --skip-test-foundation \
