@@ -25,7 +25,9 @@ RUN <<EOF
 
 set -euo pipefail
 
-ARCHITECTURE="${TARGETARCH/arm64/aarch64}"
+ARCHITECTURE="$TARGETARCH"
+ARCHITECTURE="${ARCHITECTURE/arm64/aarch64}"
+ARCHITECTURE="${ARCHITECTURE/amd64/x86_64}"
 
 # Note: The Docker CLI does not print the correct URL to the console, but the actual
 # interpolated string passed to `curl` is correct.
