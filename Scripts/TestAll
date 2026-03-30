@@ -1,14 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 dockerfile='Ubuntu.24.04.Dockerfile'
+script='swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
 
 docker build . -f $dockerfile -t swiftwasm:__test
-
-echo $SWIFT_WASM_SDK
 docker run --rm \
     -u ubuntu \
     -v=$PWD/Tests:/home/ubuntu/swift \
     -w=/home/ubuntu/swift \
     swiftwasm:__test \
-    /bin/bash -c 'swift build --swift-sdk "$SWIFT_WASM_SDK" --swift-sdks-path "$SWIFT_WASM_SDK_PATH"'
+    /bin/bash -c "$script"

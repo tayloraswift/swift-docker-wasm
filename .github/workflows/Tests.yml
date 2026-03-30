@@ -1,4 +1,4 @@
-name: test
+name: Tests
 
 on:
     push:
@@ -10,13 +10,12 @@ jobs:
     test:
         name: Test WebAssembly compilation
         runs-on: ubuntu-latest
-
         steps:
-            -   name: Checkout repository
+            -   name: 💖 Checkout repository 💖
                 uses: actions/checkout@v6
 
-            -   name: Add permissions for Docker
+            -   name: 💖 Add permissions for Docker 💖
                 run: chmod -R a+w Tests/
 
-            -   name: Test WebAssembly compilation
+            -   name: 💖 Test WebAssembly compilation 💖
                 run: Scripts/TestAll
