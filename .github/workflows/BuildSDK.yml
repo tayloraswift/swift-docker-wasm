@@ -36,9 +36,19 @@ jobs:
                 run: |
                     SWIFT_PREFIX="${{ inputs.swift-prefix }}"
                     SWIFT_TAG="${SWIFT_PREFIX##*/}"
-                    echo "checking out tag: ${SWIFT_TAG}"
 
-                    swift/utils/update-checkout --clone --tag "$SWIFT_TAG"
+                    SWIFT_SCHEME="${SWIFT_TAG#swift-}"
+                    SWIFT_SCHEME="${SWIFT_SCHEME%-RELEASE}
+
+                    echo "checking out tag: ${SWIFT_TAG} with scheme release/${SWIFT_SCHEME}"
+
+                    git -C swift checkout "$SWIFT_TAG"
+                    swift/utils/update-checkout \
+                        --scheme "release/${SWIFT_SCHEME}" \
+                        --clone \
+                        --reset-to-remote \
+                        --match-timestamp \
+                        --skip-repository swift
 
             -   name: 💝 Build  💝
                 run: |
@@ -48,6 +58,8 @@ jobs:
                         --skip-build-swift \
                         --skip-build-cmark \
                         --build-wasm-stdlib \
+                        --build-stdlib-deployment-targets "wasi-wasm32 wasi-wasm32-threads"
+                        --stdlib-deployment-targets "wasi-wasm32 wasi-wasm32-threads"
                         --native-swift-tools-path="$SWIFT_PATH" \
                         --native-clang-tools-path="$SWIFT_PATH" \
                         --native-llvm-tools-path="$SWIFT_PATH"
@@ -57,10 +69,10 @@ jobs:
                     ls -l swift-sdk-generator
                     ls -l swift-sdk-generator/Bundles
 
-            # -   name: 💝 Upload SDK artifacts 💝
-            #     uses: actions/upload-artifact@v7
-            #     with:
-            #         name: swift-wasm-sdk-bundle
-            #         path: ./*.artifactbundle.tar.gz
-            #         retention-days: 1
-            #         compression-level: 0
+            -   name: 💝 Upload SDK artifacts 💝
+                uses: actions/upload-artifact@v7
+                with:
+                    name: swift-wasm-sdk-bundle
+                    path: swift-sdk-generator/Bundles/*.artifactbundle.zip
+                    retention-days: 1
+                    compression-level: 0
